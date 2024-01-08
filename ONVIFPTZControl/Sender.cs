@@ -62,14 +62,11 @@ namespace ONVIFPTZControl
                     }
 
                     CreateVideo();
+
                     ZipFile.CreateFromDirectory(TargetDir, _zipPath);
                     _smtpClient.Send(GetMailWithImg(item));
 
-                    Directory.GetFiles(_appPath)
-                            .Select(f => new FileInfo(f))
-                            .Where(f => f.LastAccessTime < DateTime.Now.AddMonths(-1))
-                            .ToList()
-                            .ForEach(f => f.Delete());
+                    DeleteOldAndNotNeedFiles();
                 }
             }
             catch (Exception)
@@ -78,6 +75,27 @@ namespace ONVIFPTZControl
                 
             }
           
+        }
+
+        private void DeleteOldAndNotNeedFiles()
+        {
+            var oldFile = Directory.GetFiles(TargetDir).FirstOrDefault();
+            File.Copy(oldFile, Path.Combine(_appPath, Path.GetFileName(oldFile)));
+
+            Directory.GetFiles(_appPath)
+                    .Select(f => new FileInfo(f))
+                    .Where(f => f.LastAccessTime < DateTime.Now.AddMonths(-1))
+                    .ToList()
+                    .ForEach(f => f.Delete());
+
+            Directory.GetFiles(_appPath, "*.avi")
+                   .Select(f => new FileInfo(f))
+                   .ToList()
+                   .ForEach(f => f.Delete());
+            Directory.GetFiles(_appPath, "*.zip")
+                   .Select(f => new FileInfo(f))
+                   .ToList()
+                   .ForEach(f => f.Delete());
         }
 
         private void CreateVideo()

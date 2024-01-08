@@ -161,7 +161,7 @@ namespace ONVIFPTZControl
             }
             catch (Exception)
             {
-                return false;
+                //return false;
             }
             return true;
 
