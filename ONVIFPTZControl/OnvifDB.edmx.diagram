@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="c42e073c9c74400e8a5c7f4ab2ad4912" Name="Diagram1">
+        <EntityTypeShape EntityType="masterModel.Camera" Width="1.5" PointX="5.25" PointY="1.25" />
+        <EntityTypeShape EntityType="masterModel.CameraFrameTime" Width="1.5" PointX="7.5" PointY="2.25" />
+        <EntityTypeShape EntityType="masterModel.EmailAndWhatsAppSender" Width="1.5" PointX="5.25" PointY="6" />
+        <EntityTypeShape EntityType="masterModel.Organization" Width="1.5" PointX="0.75" PointY="3.875" />
+        <EntityTypeShape EntityType="masterModel.Project" Width="1.5" PointX="3" PointY="3.5" />
+        <EntityTypeShape EntityType="masterModel.User" Width="1.5" PointX="0.75" PointY="0.75" />
+        <EntityTypeShape EntityType="masterModel.MSreplication_options" Width="1.5" PointX="0.75" PointY="7.75" />
+        <EntityTypeShape EntityType="masterModel.spt_fallback_db" Width="1.5" PointX="7.75" PointY="5.75" />
+        <EntityTypeShape EntityType="masterModel.spt_fallback_dev" Width="1.5" PointX="9.75" PointY="0.75" />
+        <EntityTypeShape EntityType="masterModel.spt_fallback_usg" Width="1.5" PointX="2.75" PointY="9.75" />
+        <EntityTypeShape EntityType="masterModel.spt_monitor" Width="1.5" PointX="9.75" PointY="4.75" />
+        <AssociationConnector Association="masterModel.FK_Camera_Project" />
+        <AssociationConnector Association="masterModel.FK_CameraFrameTime_Camera" />
+        <AssociationConnector Association="masterModel.FK_EmailAndWhatsAppSender_Project" />
+        <AssociationConnector Association="masterModel.FK_Project_Organization" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>
