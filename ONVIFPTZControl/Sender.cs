@@ -45,37 +45,46 @@ namespace ONVIFPTZControl
 
         public void StrtSending()
         {
-            foreach (var item in Camera.Project.EmailAndWhatsAppSenders)
+            try
+            {
+                foreach (var item in Camera.Project.EmailAndWhatsAppSenders)
+                {
+
+                    TargetDir = _appPath + $"old-{_dateTime}";
+                    if (!Directory.Exists(TargetDir))
+                    {
+                        Directory.CreateDirectory(TargetDir);
+                    }
+
+                    foreach (var file in Directory.GetFiles(_appPath))
+                    {
+                        File.Move(file, Path.Combine(TargetDir, Path.GetFileName(file)));
+                    }
+
+                    CreateVideo();
+                    ZipFile.CreateFromDirectory(TargetDir, _zipPath);
+                    _smtpClient.Send(GetMailWithImg(item));
+
+                    Directory.GetFiles(_appPath)
+                            .Select(f => new FileInfo(f))
+                            .Where(f => f.LastAccessTime < DateTime.Now.AddMonths(-1))
+                            .ToList()
+                            .ForEach(f => f.Delete());
+                }
+            }
+            catch (Exception)
             {
 
-                TargetDir = _appPath + $"old-{_dateTime}";
-                if (!Directory.Exists(TargetDir))
-                {
-                    Directory.CreateDirectory(TargetDir);
-                }
-
-                foreach (var file in Directory.GetFiles(_appPath))
-                {
-                    File.Move(file, Path.Combine(TargetDir, Path.GetFileName(file)));
-                }
-
-                CreateVideo();
-                ZipFile.CreateFromDirectory(TargetDir, _zipPath);
-                _smtpClient.Send(GetMailWithImg(item));
-
-                Directory.GetFiles(_appPath)
-                        .Select(f => new FileInfo(f))
-                        .Where(f => f.LastAccessTime < DateTime.Now.AddMonths(-1))
-                        .ToList()
-                        .ForEach(f => f.Delete());
+                
             }
+          
         }
 
         private void CreateVideo()
         {
             using (VideoFileWriter writer = new VideoFileWriter())
             {
-                writer.Open($@"{_appPath}myfile.avi", 1920, 1080, 24 , VideoCodec.MPEG4);
+                writer.Open($@"{_appPath}myfile.avi", 1920, 1080, 25 , VideoCodec.MPEG4);
                 var seconds = 0;
                 foreach (var file in Directory.GetFiles($@"{TargetDir}\", "*.jpg"))
                 {

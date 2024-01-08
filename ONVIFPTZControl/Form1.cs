@@ -35,7 +35,7 @@ namespace ONVIFPTZControl
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         public double TimerInterval { get; set; } = 30000;
 
-        public double TimerIntervalToSend { get; set; } = 50000;
+        public double TimerIntervalToSend { get; set; } = 500;
 
         
         private SynchronizationContext syncContext;
@@ -75,28 +75,38 @@ namespace ONVIFPTZControl
 
                 Parallel.ForEach(allPtz, ptz =>
                 {
-                    using (Sender send = new Sender(ptz))
+                    try
                     {
-                        send.StrtSending();
-                        if (ptz.NextSendDate == null)
-                            ptz.NextSendDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 23, 59, 00);
-
-                        switch (ptz.NextSendDWM.ToLower())
+                        using (Sender send = new Sender(ptz))
                         {
-                            case "day":
-                                ptz.NextSendDate = new DateTime(ptz.NextSendDate.Value.Year, ptz.NextSendDate.Value.Month, ptz.NextSendDate.Value.Day + 1, 23, 59, 00);
-                                break;
-                            case "week":
-                                ptz.NextSendDate = new DateTime(ptz.NextSendDate.Value.Year, ptz.NextSendDate.Value.Month, ptz.NextSendDate.Value.Day + 7, 23, 59, 00);
-                                break;
-                            case "month":
-                                ptz.NextSendDate = new DateTime(ptz.NextSendDate.Value.Year, ptz.NextSendDate.Value.Month + 1, ptz.NextSendDate.Value.Day + 7, 23, 59, 00);
-                                break;
-                            default:
-                                break;
+                            send.StrtSending();
+                            if (ptz.NextSendDate == null)
+                                ptz.NextSendDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 23, 59, 00);
+
+                            switch (ptz.NextSendDWM.ToLower())
+                            {
+                                case "day":
+                                    ptz.NextSendDate = CreateDateToSend(ptz).AddDays(1);
+                                    break;
+                                case "week":
+                                    ptz.NextSendDate = CreateDateToSend(ptz).AddDays(7);
+                                    break;
+                                case "month":
+                                    ptz.NextSendDate = CreateDateToSend(ptz).AddMonths(1);
+                                    break;
+                                default:
+                                    break;
+                            }
+
                         }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error("Parallel fiemes :" + ex);
 
                     }
+
+                   
                 });
                 masterEntitiesDB.SaveChanges();
 
@@ -109,6 +119,11 @@ namespace ONVIFPTZControl
             {
                 timerToSend.Start();
             }
+        }
+
+        private static DateTime CreateDateToSend(Camera ptz)
+        {
+            return new DateTime(ptz.NextSendDate.Value.Year, ptz.NextSendDate.Value.Month, ptz.NextSendDate.Value.Day, 23, 59, 00);
         }
 
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
@@ -128,27 +143,36 @@ namespace ONVIFPTZControl
 
                 Parallel.ForEach(allPtz, ptz =>
                 {
-                    var frames = fiemes.Where(n => n.CameraId == ptz.Id).ToList();
-                    if (!frames.Any()) return;
-
-                    using (PtzCamera camera = new PtzCamera())
+                    try
                     {
-                        if (camera.Initialise(ptz))
+                        var frames = fiemes.Where(n => n.CameraId == ptz.Id).ToList();
+                        if (!frames.Any()) return;
+
+                        using (PtzCamera camera = new PtzCamera())
                         {
-                            camera.SetCurentPreset();
-                            camera.GoToImagePreset();
-                            Thread.Sleep(5000);
-                            if (!camera.SaveImage(textBox1))
+                            if (camera.Initialise(ptz))
                             {
-                                using (Sender send = new Sender(ptz))
+                                camera.SetCurentPreset();
+                                camera.GoToImagePreset();
+                                Thread.Sleep(5000);
+                                if (!camera.SaveImage(textBox1))
                                 {
-                                    send.SendAlert(textBox2.Text, camera.FullPath);
+                                    using (Sender send = new Sender(ptz))
+                                    {
+                                        send.SendAlert(textBox2.Text, camera.FullPath);
+                                    }
                                 }
+                                camera.GoToSavedPreset();
+                                ptz.NextFrameDate = SetNextFrameDate(ptz.NextFrameDate, frames);
                             }
-                            camera.GoToSavedPreset();
-                            ptz.NextFrameDate = SetNextFrameDate(ptz.NextFrameDate, frames);
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        Logger.Error("Parallel fiemes :" + ex);
+
+                    }
+                    
                 });
                 masterEntitiesDB.SaveChanges();
             }
