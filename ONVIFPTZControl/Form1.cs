@@ -33,7 +33,7 @@ namespace ONVIFPTZControl
         private masterEntities1 masterEntitiesDB;
         
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-        public double TimerInterval { get; set; } = 300;
+        public double TimerInterval { get; set; } = 30000;
 
         public double TimerIntervalToSend { get; set; } = 50000;
 
