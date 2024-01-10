@@ -8,7 +8,7 @@ using System.IO;
 using System.Windows.Forms;
 using System.Drawing.Imaging;
 using Emgu.CV;
-
+using System.Configuration;
 
 namespace ONVIFPTZControl
 {
@@ -139,8 +139,10 @@ namespace ONVIFPTZControl
                 var rtsp= _camera.RtspPort==null? $"rtsp://{_camera.Usermane}:{_camera.Password}@{_camera.Url}" :$"rtsp://{_camera.Usermane}:{_camera.Password}@{_camera.Url}:{_camera.RtspPort}";
                 using (VideoCapture cameraCapture = new VideoCapture(rtsp))
                 {
+
+                    var imagepath= ConfigurationManager.AppSettings["imagesPath"];
                     string fileName = $@"{DateTime.Now.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss")}.jpg";
-                    string appPath = Path.GetDirectoryName(Application.ExecutablePath) + $@"\{_camera.Project.Organization.Name}\{_camera.Project.Name}\{_camera.Name}\";
+                    string appPath = imagepath + $@"\{_camera.Project.Organization.Name}\{_camera.Project.Name}\{_camera.Name}\";
                     if (!Directory.Exists(appPath))
                     {
                         Directory.CreateDirectory(appPath);

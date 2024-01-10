@@ -33,9 +33,9 @@ namespace ONVIFPTZControl
         private masterEntities1 masterEntitiesDB;
         
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-        public double TimerInterval { get; set; } = 30000;
+        public double TimerInterval { get; set; } = 300;
 
-        public double TimerIntervalToSend { get; set; } = 500;
+        public double TimerIntervalToSend { get; set; } = 50000;
 
         
         private SynchronizationContext syncContext;
@@ -136,7 +136,7 @@ namespace ONVIFPTZControl
                 List<CameraFrameTime> fiemes = new List<CameraFrameTime>();
                 syncContext.Send(state =>
                 {
-                    allPtz = masterEntitiesDB.Cameras.Where(x => x.NextFrameDate == null || x.NextFrameDate <= DateTime.Now).ToList();
+                    allPtz = masterEntitiesDB.Cameras.Include("Project.Organization").Where(x => x.NextFrameDate == null || x.NextFrameDate <= DateTime.Now).ToList();
                     fiemes= masterEntitiesDB.CameraFrameTimes.ToList();
                    
                 }, null);
