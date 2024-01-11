@@ -33,7 +33,7 @@ namespace ONVIFPTZControl
         private masterEntities1 masterEntitiesDB;
         
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-        public double TimerInterval { get; set; } = 300;
+        public double TimerInterval { get; set; } = 30000;
 
         public double TimerIntervalToSend { get; set; } = 50000;
 
@@ -155,13 +155,26 @@ namespace ONVIFPTZControl
                                 camera.SetCurentPreset();
                                 camera.GoToImagePreset();
                                 Thread.Sleep(5000);
-                                if (!camera.SaveImage(textBox1))
+                                try
                                 {
-                                    using (Sender send = new Sender(ptz))
+                                    if (!camera.SaveImage(textBox1))
                                     {
-                                        send.SendAlert(textBox2.Text, camera.FullPath);
+                                        using (Sender send = new Sender(ptz))
+                                        {
+                                            send.SendAlert(textBox2.Text, camera.FullPath);
+                                        }
                                     }
                                 }
+                                catch (Exception ex)
+                                {
+
+                                    Logger.Error("Save Image no image :" + ex);
+                                    using (Sender send = new Sender(ptz))
+                                    {
+                                        send.SendAlertNoSave(textBox2.Text, camera.FullPath);
+                                    }
+                                }
+                               
                                 camera.GoToSavedPreset();
                                 ptz.NextFrameDate = SetNextFrameDate(ptz.NextFrameDate, frames);
                             }

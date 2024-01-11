@@ -158,6 +158,18 @@ namespace ONVIFPTZControl
             mail.Subject = $"images bad quality  {_nameOrgProjectCamera}";
             _smtpClient.Send(mail);
         }
+
+        public void SendAlertNoSave(string to, string path)
+        {
+            MailMessage mail = new MailMessage();
+            mail.IsBodyHtml = true;
+            AddFile(mail, path);
+            mail.From = new MailAddress("Arie.cam11@gmail.com");
+            mail.To.Add(to);
+            mail.Subject = $"Image Not Save {_nameOrgProjectCamera}";
+            _smtpClient.Send(mail);
+        }
+
         private MailMessage GetMailWithImg(EmailAndWhatsAppSender emailAndWhatsAppSender)
         {
             MailMessage mail = new MailMessage();
