@@ -171,7 +171,8 @@ namespace ONVIFPTZControl
                                     Logger.Error("Save Image no image :" + ex);
                                     using (Sender send = new Sender(ptz))
                                     {
-                                        send.SendAlertNoSave(textBox2.Text, camera.FullPath);
+                                        send.SendAlertNoSave(textBox2.Text, ex.Message);
+                                        send.SendAlertNoSave("anatolipak@gmail.com", ex.Message);
                                     }
                                 }
                                

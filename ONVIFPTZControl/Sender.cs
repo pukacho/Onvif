@@ -1,6 +1,7 @@
 ﻿using Accord.Video.FFMPEG;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Drawing;
 using System.IO;
 using System.IO.Compression;
@@ -38,7 +39,7 @@ namespace ONVIFPTZControl
         {
             Camera = camera;
             _dateTime= $"{DateTime.Now.ToString("dd-MM-yyy-hh-mm")}";
-            _appPath = Path.GetDirectoryName(Application.ExecutablePath) + $@"\{Camera.Project.Organization.Name}\{Camera.Project.Name}\{Camera.Name}\";
+            _appPath = ConfigurationManager.AppSettings["imagesPath"] + $@"\{Camera.Project.Organization.Name}\{Camera.Project.Name}\{Camera.Name}\";
             _zipPath = _appPath + $@"\{Camera.Project.Organization.Name}-{Camera.Project.Name}-{Camera.Name}-{_dateTime}.zip";
             _nameOrgProjectCamera = $"Organization: {Camera.Project.Organization.Name} Project: {Camera.Project.Name} Camera: {Camera.Name}";
         }
@@ -159,14 +160,15 @@ namespace ONVIFPTZControl
             _smtpClient.Send(mail);
         }
 
-        public void SendAlertNoSave(string to, string path)
+        public void SendAlertNoSave(string to, string text)
         {
             MailMessage mail = new MailMessage();
             mail.IsBodyHtml = true;
-            AddFile(mail, path);
+          
             mail.From = new MailAddress("Arie.cam11@gmail.com");
             mail.To.Add(to);
             mail.Subject = $"Image Not Save {_nameOrgProjectCamera}";
+            mail.Body = text;
             _smtpClient.Send(mail);
         }
 
