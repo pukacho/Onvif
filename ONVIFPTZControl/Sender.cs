@@ -40,7 +40,7 @@ namespace ONVIFPTZControl
             Camera = camera;
             _dateTime= $"{DateTime.Now.ToString("dd-MM-yyy-hh-mm")}";
             _appPath = ConfigurationManager.AppSettings["imagesPath"] + $@"\{Camera.Project.Organization.Name}\{Camera.Project.Name}\{Camera.Name}\";
-            _zipPath = _appPath + $@"\{Camera.Project.Organization.Name}-{Camera.Project.Name}-{Camera.Name}-{_dateTime}.zip";
+            _zipPath = _appPath + $@"{Camera.Project.Organization.Name}-{Camera.Project.Name}-{Camera.Name}-{_dateTime}.zip";
             _nameOrgProjectCamera = $"Organization: {Camera.Project.Organization.Name} Project: {Camera.Project.Name} Camera: {Camera.Name}";
         }
 
@@ -63,18 +63,18 @@ namespace ONVIFPTZControl
                         }
 
                     }
+                    CreateVideo();
+                    ZipFile.CreateFromDirectory(TargetDir, _zipPath);
                 }
-
+                    
                 foreach (var item in Camera.Project.EmailAndWhatsAppSenders)
                 {
-                    if (Directory.GetFiles(_appPath).Any())
+                    if (Directory.GetFiles(TargetDir).Any())
                     {
-                        CreateVideo();
-                        ZipFile.CreateFromDirectory(TargetDir, _zipPath);
                         _smtpClient.Send(GetMailWithImg(item));
                     }
-                   
                 }
+               
             }
             catch (Exception)
             {
@@ -144,7 +144,6 @@ namespace ONVIFPTZControl
                 {
                     writer.WriteVideoFrame(Bitmap.FromFile(file) as Bitmap, TimeSpan.FromSeconds(seconds));
                     seconds += Camera.FrameTimeSec;
-                    writer.WriteVideoFrame(Bitmap.FromFile(file) as Bitmap, TimeSpan.FromSeconds(seconds));
                 }
                 writer.Close();
             }

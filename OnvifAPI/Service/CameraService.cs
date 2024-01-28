@@ -26,14 +26,16 @@ namespace OnvifAPI.Service
 
         public Camera Add(Camera newCamera)
         {
-            var cam = _cameraRepository.Add(newCamera);
+            var cam = _cameraRepository.Add(SetTimeFrame( newCamera));
            
             return cam;
         }
 
+      
+
         public Camera Update(Camera updateCamera)
         {
-            var cam = _cameraRepository.Update(updateCamera);
+            var cam = _cameraRepository.Update(SetTimeFrame(updateCamera));
             Camera camPO = masterContext.Cameras.Include(c => c.Project).Include(x => x.Project.Organization).FirstOrDefault(n=>n.Id== cam.Id);
             cam.Image = Getimage(camPO);
             return cam;
@@ -59,7 +61,24 @@ namespace OnvifAPI.Service
             return SetImages(masterContext.Cameras.Include(c => c.Project).Include(x => x.Project.Organization).Where(c=>c.ProjectId== id));
         }
 
+        private Camera SetTimeFrame(Camera newCamera)
+        {
+            switch (newCamera.NextSendDwm.ToLower())
+            {
+                case "day":
+                    newCamera.FrameTimeSec = 4;
+                    break;
+                case "week":
+                    newCamera.FrameTimeSec = 3;
+                    break;
+                case "month":
+                    newCamera.FrameTimeSec = 2;
+                    break;
+                default:
+                    break;
+            }
+            return newCamera;
+        }
 
-       
     }
 }

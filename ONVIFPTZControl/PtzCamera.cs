@@ -9,6 +9,8 @@ using System.Windows.Forms;
 using System.Drawing.Imaging;
 using Emgu.CV;
 using System.Configuration;
+using Emgu.CV.PpfMatch3d;
+using System.Threading;
 
 namespace ONVIFPTZControl
 {
@@ -134,37 +136,73 @@ namespace ONVIFPTZControl
 
         public bool SaveImage(TextBox textBox1)
         {
-            try
+            string tosend = "";
+            bool tryTosend = true;
+            int count = 0;
+            while (tryTosend)
             {
-                var rtsp= _camera.RtspPort==null? $"rtsp://{_camera.Usermane}:{_camera.Password}@{_camera.Url}" :$"rtsp://{_camera.Usermane}:{_camera.Password}@{_camera.Url}:{_camera.RtspPort}";
-                using (VideoCapture cameraCapture = new VideoCapture(rtsp))
+                try
                 {
+                    var rtsp = $"rtsp://{_camera.Usermane}:{_camera.Password}@{_camera.Url}";
+                    if (_camera.RtspPort != null && _camera.RtspPort != 554)
+                    {
+                        rtsp = $"rtsp://{_camera.Usermane}:{_camera.Password}@{_camera.Url}:{_camera.RtspPort}";
+                    }
+                    using (VideoCapture cameraCapture = new VideoCapture(rtsp))
+                    {
+                        tosend += "rtsp " + rtsp;
 
-                    var imagepath= ConfigurationManager.AppSettings["imagesPath"];
-                    string fileName = $@"{DateTime.Now.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss")}.jpg";
-                    string appPath = imagepath + $@"\{_camera.Project.Organization.Name}\{_camera.Project.Name}\{_camera.Name}\";
-                    if (!Directory.Exists(appPath))
-                    {
-                        Directory.CreateDirectory(appPath);
+                        var imagepath = ConfigurationManager.AppSettings["imagesPath"];
+
+                        tosend += "\n imagepath:" + imagepath;
+
+                        string fileName = $@"{DateTime.Now.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss")}.jpg";
+
+                        tosend += "\n fileName:" + fileName;
+
+                        string appPath = imagepath + $@"\{_camera.Project.Organization.Name}\{_camera.Project.Name}\{_camera.Name}\";
+
+                        tosend += "\n appPath:" + appPath;
+
+                        if (!Directory.Exists(appPath))
+                        {
+                            Directory.CreateDirectory(appPath);
+                        }
+
+                        tosend += "\n CreateDirectory";
+
+                        Mat frame = cameraCapture.QueryFrame();
+                        var bit = frame.ToBitmap();
+
+                        tosend += "\n bit:" + bit.Size;
+
+                        FullPath = appPath + fileName;
+
+                        tosend += "\n FullPath:" + FullPath;
+
+                        bit.Save(FullPath, ImageFormat.Jpeg);
+                        FileInfo fInfo = new FileInfo(FullPath);
+                        long sLen = 0;
+                        if (fInfo.Length >= (1 << 10))
+                            sLen = fInfo.Length >> 10;
+                        if (sLen < int.Parse(textBox1.Text))
+                        {
+                            return false;
+                        }
                     }
-                    Mat frame = cameraCapture.QueryFrame();
-                    var bit = frame.ToBitmap();
-                    FullPath = appPath + fileName;
-                    bit.Save(FullPath, ImageFormat.Jpeg);
-                    FileInfo fInfo = new FileInfo(FullPath);
-                    long sLen = 0;
-                    if (fInfo.Length >= (1 << 10))
-                        sLen =fInfo.Length >> 10;
-                    if (sLen < int.Parse(textBox1.Text))
+                    return true;
+                }
+                catch (Exception)
+                {
+                    if (count>=3)
                     {
-                        return false;
+                        throw new Exception(tosend);
                     }
+                    count++;
+                    Thread.Sleep(10000);
                 }
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+           
             return true;
 
         }

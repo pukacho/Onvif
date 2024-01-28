@@ -33,9 +33,9 @@ namespace ONVIFPTZControl
         private masterEntities1 masterEntitiesDB;
         
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-        public double TimerInterval { get; set; } = 30000;
+        public double TimerInterval { get; set; } = 1800000;
 
-        public double TimerIntervalToSend { get; set; } = 50000;
+        public double TimerIntervalToSend { get; set; } = 1800000;
 
         
         private SynchronizationContext syncContext;
@@ -43,14 +43,14 @@ namespace ONVIFPTZControl
         public Form1()
         {
             InitializeComponent();
+            syncContext = SynchronizationContext.Current;
             masterEntitiesDB = new masterEntities1();
             timerImage = new System.Timers.Timer(TimerInterval);
             timerImage.Elapsed += Timer_Elapsed;
-            timerImage.Start();
-
+            Timer_Elapsed(null, null);
             timerToSend = new System.Timers.Timer(TimerIntervalToSend);
             timerToSend.Elapsed += TimerToSend_Elapsed;
-            timerToSend.Start();
+            TimerToSend_Elapsed(null, null);
             var config = new NLog.Config.LoggingConfiguration();
             var logfile = new NLog.Targets.FileTarget("logfile") { FileName = "file.txt" };
             var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
@@ -58,7 +58,7 @@ namespace ONVIFPTZControl
             config.AddRule(LogLevel.Debug, LogLevel.Fatal, logfile);
             NLog.LogManager.Configuration = config;
             
-            syncContext= SynchronizationContext.Current;
+            
         }
 
         private void TimerToSend_Elapsed(object sender, ElapsedEventArgs e)
@@ -171,8 +171,8 @@ namespace ONVIFPTZControl
                                     Logger.Error("Save Image no image :" + ex);
                                     using (Sender send = new Sender(ptz))
                                     {
-                                        send.SendAlertNoSave(textBox2.Text, ex.Message);
-                                        send.SendAlertNoSave("anatolipak@gmail.com", ex.Message);
+                                        send.SendAlertNoSave(textBox2.Text, ex.ToString());
+                                        send.SendAlertNoSave("anatolipak@gmail.com", ex.ToString());
                                     }
                                 }
                                
