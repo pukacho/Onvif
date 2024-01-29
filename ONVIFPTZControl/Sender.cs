@@ -145,6 +145,7 @@ namespace ONVIFPTZControl
                     writer.WriteVideoFrame(Bitmap.FromFile(file) as Bitmap, TimeSpan.FromSeconds(seconds));
                     seconds += Camera.FrameTimeSec;
                 }
+                writer.WriteVideoFrame(new Bitmap(1920, 1080), TimeSpan.FromSeconds(seconds));
                 writer.Close();
             }
         }
