@@ -199,7 +199,7 @@ namespace ONVIFPTZControl
                         throw new Exception(tosend);
                     }
                     count++;
-                    Thread.Sleep(10000);
+                    Thread.Sleep(5000);
                 }
             }
            

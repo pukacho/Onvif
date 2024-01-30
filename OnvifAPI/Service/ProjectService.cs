@@ -7,11 +7,13 @@ namespace OnvifAPI.Service
     public class ProjectService: BaseService, IProjectService
     {
         private readonly IRepository<Project> _projectRepository;
+        private readonly IRepository<EmailAndWhatsAppSender> emailAndWhatsAppSenderRepository;
         private readonly masterContext masterContext;
 
-        public ProjectService(IRepository<Project> projectRepository, masterContext masterContext)
+        public ProjectService(IRepository<Project> projectRepository, IRepository<EmailAndWhatsAppSender> emailAndWhatsAppSenderRepository, masterContext masterContext)
         {
             _projectRepository = projectRepository;
+            this.emailAndWhatsAppSenderRepository = emailAndWhatsAppSenderRepository;
             this.masterContext = masterContext;
         }
 
@@ -40,6 +42,15 @@ namespace OnvifAPI.Service
 
         public bool Delete(int projectId)
         {
+            var proj = masterContext.Projects.Include(x => x.EmailAndWhatsAppSenders).Where(n=>n.Id== projectId).FirstOrDefault();
+            if (proj!= null && proj.EmailAndWhatsAppSenders!= null && proj.EmailAndWhatsAppSenders.Any())
+            {
+                foreach (var ems in proj.EmailAndWhatsAppSenders)
+                {
+                    emailAndWhatsAppSenderRepository.Delete(ems.Id);
+                }
+            }
+           
             return _projectRepository.Delete(projectId);
         }
 

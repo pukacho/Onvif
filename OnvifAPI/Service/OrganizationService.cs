@@ -5,10 +5,12 @@ namespace OnvifAPI.Service
 {
     public class OrganizationService : IOrganizationService
     {
+        private readonly IRepository<Project> projectRepository;
         private readonly IRepository<Organization> _organizationRepository;
 
-        public OrganizationService(IRepository<Organization> OrganizationRepository)
+        public OrganizationService(IRepository<Project> projectRepository, IRepository<Organization> OrganizationRepository)
         {
+            this.projectRepository = projectRepository;
             _organizationRepository = OrganizationRepository;
         }
 
@@ -30,6 +32,14 @@ namespace OnvifAPI.Service
 
         public bool Delete(int organizationId)
         {
+            var org= _organizationRepository.GetById(organizationId);
+            if (org.Projects!= null && org.Projects.Any())
+            {
+                foreach (var item in org.Projects)
+                {
+                    projectRepository.Delete(item.Id);
+                }
+            }
             return _organizationRepository.Delete(organizationId);
         }
 

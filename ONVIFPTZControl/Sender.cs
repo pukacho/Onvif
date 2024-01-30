@@ -57,7 +57,7 @@ namespace ONVIFPTZControl
                     }
                     if (Directory.GetFiles(_appPath).Any())
                     {
-                        foreach (var file in Directory.GetFiles(_appPath))
+                        foreach (var file in Directory.GetFiles(_appPath, "*.jpg"))
                         {
                             File.Move(file, Path.Combine(TargetDir, Path.GetFileName(file)));
                         }
