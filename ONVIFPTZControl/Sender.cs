@@ -100,7 +100,7 @@ namespace ONVIFPTZControl
             }
             try
             {
-                Directory.GetFiles(_appPath, "*.avi")
+                Directory.GetFiles(_appPath, "*.mp4")
                   .Select(f => new FileInfo(f))
                   .ToList()
                   .ForEach(f => f.Delete());
@@ -138,7 +138,7 @@ namespace ONVIFPTZControl
         {
             using (VideoFileWriter writer = new VideoFileWriter())
             {
-                writer.Open($@"{_appPath}myfile.avi", 1920, 1080, 25 , VideoCodec.MPEG4);
+                writer.Open($@"{_appPath}myfile.mp4", 1920, 1080, 25 , VideoCodec.MPEG4);
                 var seconds = 0;
                 foreach (var file in Directory.GetFiles($@"{TargetDir}\", "*.jpg"))
                 {
@@ -177,7 +177,7 @@ namespace ONVIFPTZControl
             MailMessage mail = new MailMessage();
             mail.IsBodyHtml = true;
             AttachFiles(mail, "*.zip");
-            AttachFiles(mail, "*.avi");
+            AttachFiles(mail, "*.mp4");
             mail.From = new MailAddress("Arie.cam11@gmail.com");
             mail.To.Add(emailAndWhatsAppSender.Email);
             mail.Subject = $"Images from Project {Camera.Project.Name}";

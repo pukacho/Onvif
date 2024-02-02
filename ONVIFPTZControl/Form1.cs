@@ -33,7 +33,7 @@ namespace ONVIFPTZControl
         private masterEntities1 masterEntitiesDB;
         
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-        public double TimerInterval { get; set; } = 1800000;
+        public double TimerInterval { get; set; } = 300000;
 
         public double TimerIntervalToSend { get; set; } = 1800000;
 
@@ -50,7 +50,7 @@ namespace ONVIFPTZControl
             Timer_Elapsed(null, null);
             timerToSend = new System.Timers.Timer(TimerIntervalToSend);
             timerToSend.Elapsed += TimerToSend_Elapsed;
-            TimerToSend_Elapsed(null, null);
+            //TimerToSend_Elapsed(null, null);
             var config = new NLog.Config.LoggingConfiguration();
             var logfile = new NLog.Targets.FileTarget("logfile") { FileName = "file.txt" };
             var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
@@ -143,52 +143,55 @@ namespace ONVIFPTZControl
 
                 Parallel.ForEach(allPtz, ptz =>
                 {
-                    try
-                    {
-                        var frames = fiemes.Where(n => n.CameraId == ptz.Id).ToList();
-                        if (!frames.Any()) return;
-
-                        using (PtzCamera camera = new PtzCamera())
-                        {
-                            if (camera.Initialise(ptz))
-                            {
-                                camera.SetCurentPreset();
-                                camera.GoToImagePreset();
-                                Thread.Sleep(5000);
-                                try
-                                {
-                                    if (!camera.SaveImage(textBox1))
-                                    {
-                                        using (Sender send = new Sender(ptz))
-                                        {
-                                            send.SendAlert(textBox2.Text, camera.FullPath);
-                                        }
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-
-                                    Logger.Error("Save Image no image :" + ex);
-                                    using (Sender send = new Sender(ptz))
-                                    {
-                                        send.SendAlertNoSave(textBox2.Text, ex.ToString());
-                                        send.SendAlertNoSave("anatolipak@gmail.com", ex.ToString());
-                                    }
-                                }
-                               
-                                camera.GoToSavedPreset();
-                                ptz.NextFrameDate = SetNextFrameDate(ptz.NextFrameDate, frames);
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Error("Parallel fiemes :" + ex);
-
-                    }
                     
+                        Task.Run(() => 
+                        {
+                            try
+                            {
+                                var frames = fiemes.Where(n => n.CameraId == ptz.Id).ToList();
+                                if (!frames.Any()) return;
+
+                                using (PtzCamera camera = new PtzCamera())
+                                {
+                                    if (camera.Initialise(ptz))
+                                    {
+                                        camera.SetCurentPreset();
+                                        camera.GoToImagePreset();
+                                        Thread.Sleep(5000);
+                                        try
+                                        {
+                                            if (!camera.SaveImage(textBox1))
+                                            {
+                                                using (Sender send = new Sender(ptz))
+                                                {
+                                                    send.SendAlert(textBox2.Text, camera.FullPath);
+                                                }
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+
+                                            Logger.Error("Save Image no image :" + ex);
+                                            using (Sender send = new Sender(ptz))
+                                            {
+                                                send.SendAlertNoSave(textBox2.Text, ex.ToString());
+                                                send.SendAlertNoSave("anatolipak@gmail.com", ex.ToString());
+                                            }
+                                        }
+
+                                        camera.GoToSavedPreset();
+                                        ptz.NextFrameDate = SetNextFrameDate(ptz.NextFrameDate, frames);
+                                        masterEntitiesDB.SaveChanges();
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Error("Parallel fiemes :" + ex);
+                            }
+                        });
+                       
                 });
-                masterEntitiesDB.SaveChanges();
             }
             catch (Exception ex)
             {

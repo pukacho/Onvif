@@ -66,13 +66,13 @@ namespace OnvifAPI.Service
             switch (newCamera.NextSendDwm.ToLower())
             {
                 case "day":
-                    newCamera.FrameTimeSec = 4;
-                    break;
-                case "week":
                     newCamera.FrameTimeSec = 3;
                     break;
-                case "month":
+                case "week":
                     newCamera.FrameTimeSec = 2;
+                    break;
+                case "month":
+                    newCamera.FrameTimeSec = 1;
                     break;
                 default:
                     break;
