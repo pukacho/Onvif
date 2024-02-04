@@ -50,6 +50,7 @@ namespace ONVIFPTZControl
             Timer_Elapsed(null, null);
             timerToSend = new System.Timers.Timer(TimerIntervalToSend);
             timerToSend.Elapsed += TimerToSend_Elapsed;
+            timerToSend.Start();
             //TimerToSend_Elapsed(null, null);
             var config = new NLog.Config.LoggingConfiguration();
             var logfile = new NLog.Targets.FileTarget("logfile") { FileName = "file.txt" };

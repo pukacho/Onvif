@@ -48,6 +48,16 @@ namespace ONVIFPTZControl
         {
             try
             {
+                DeletoOldZipandVideo();
+            }
+            catch (Exception)
+            {
+
+                
+            }
+
+            try
+            {
                 if (Camera.Project.EmailAndWhatsAppSenders.Any())
                 {
                     TargetDir = _appPath + $"old-{_dateTime}";
@@ -86,6 +96,8 @@ namespace ONVIFPTZControl
 
         private void DeleteOldAndNotNeedFiles()
         {
+            DeletoOldZipandVideo();
+
             try
             {
                 Directory.GetFiles(_appPath)
@@ -98,6 +110,22 @@ namespace ONVIFPTZControl
             {
 
             }
+            try
+            {
+                var oldFile = Directory.GetFiles(TargetDir, "*.jpg").FirstOrDefault();
+                File.Copy(oldFile, Path.Combine(_appPath, Path.GetFileName(oldFile)));
+            }
+            catch (Exception)
+            {
+
+            }
+
+          
+
+        }
+        void DeletoOldZipandVideo()
+        {
+            
             try
             {
                 Directory.GetFiles(_appPath, "*.mp4")
@@ -121,19 +149,7 @@ namespace ONVIFPTZControl
             {
 
             }
-            try
-            {
-                var oldFile = Directory.GetFiles(TargetDir, "*.jpg").FirstOrDefault();
-                File.Copy(oldFile, Path.Combine(_appPath, Path.GetFileName(oldFile)));
-            }
-            catch (Exception)
-            {
-
-            }
-
-            
         }
-
         private void CreateVideo()
         {
             using (VideoFileWriter writer = new VideoFileWriter())
