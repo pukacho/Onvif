@@ -21,8 +21,10 @@
           <Property Name="NextFrameDate" Type="datetime" />
           <Property Name="CreateDate" Type="datetime" Nullable="false" />
           <Property Name="IsDisabled" Type="bit" Nullable="false" />
-          <Property Name="RtspPort" Type="int" />
+          <Property Name="RtspPort" Type="nvarchar" MaxLength="150" />
           <Property Name="Name" Type="nvarchar" MaxLength="150" />
+          <Property Name="Presets" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="VideoDisabled" Type="bit" Nullable="false" />
         </EntityType>
         <EntityType Name="CameraFrameTime">
           <Key>
@@ -374,10 +376,12 @@ warning 6002: The table/view 'master.dbo.spt_monitor' does not have a primary ke
           <Property Name="NextFrameDate" Type="DateTime" Precision="3" />
           <Property Name="CreateDate" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="IsDisabled" Type="Boolean" Nullable="false" />
-          <Property Name="RtspPort" Type="Int32" />
+          <Property Name="RtspPort" Type="String" />
           <Property Name="Name" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="Project" Relationship="masterModel.FK_Camera_Project" FromRole="Camera" ToRole="Project" />
           <NavigationProperty Name="CameraFrameTimes" Relationship="masterModel.FK_CameraFrameTime_Camera" FromRole="Camera" ToRole="CameraFrameTime" />
+          <Property Name="Presets" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="VideoDisabled" Type="Boolean" Nullable="false" />
         </EntityType>
         <EntityType Name="CameraFrameTime">
           <Key>
@@ -597,6 +601,8 @@ warning 6002: The table/view 'master.dbo.spt_monitor' does not have a primary ke
           <EntitySetMapping Name="Cameras">
             <EntityTypeMapping TypeName="masterModel.Camera">
               <MappingFragment StoreEntitySet="Camera">
+                <ScalarProperty Name="VideoDisabled" ColumnName="VideoDisabled" />
+                <ScalarProperty Name="Presets" ColumnName="Presets" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="RtspPort" ColumnName="RtspPort" />
                 <ScalarProperty Name="IsDisabled" ColumnName="IsDisabled" />

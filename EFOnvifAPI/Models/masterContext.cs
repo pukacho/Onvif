@@ -46,6 +46,11 @@ public partial class masterContext : DbContext
                 .IsRequired()
                 .HasMaxLength(150);
             entity.Property(e => e.Port).HasDefaultValueSql("((80))");
+            entity.Property(e => e.Presets)
+                .IsRequired()
+                .HasMaxLength(500)
+                .HasDefaultValueSql("('20;')");
+            entity.Property(e => e.RtspPort).HasMaxLength(150);
             entity.Property(e => e.Url)
                 .IsRequired()
                 .HasMaxLength(150);
@@ -68,8 +73,7 @@ public partial class masterContext : DbContext
                 .HasColumnType("datetime");
             entity.Property(e => e.FrameTime)
                 .IsRequired()
-                .HasMaxLength(10)
-                .IsFixedLength();
+                .HasMaxLength(10);
 
             entity.HasOne(d => d.Camera).WithMany(p => p.CameraFrameTimes)
                 .HasForeignKey(d => d.CameraId)

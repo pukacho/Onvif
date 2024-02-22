@@ -32,8 +32,10 @@ namespace ONVIFPTZControl
         public Nullable<System.DateTime> NextFrameDate { get; set; }
         public System.DateTime CreateDate { get; set; }
         public bool IsDisabled { get; set; }
-        public Nullable<int> RtspPort { get; set; }
+        public string RtspPort { get; set; }
         public string Name { get; set; }
+        public string Presets { get; set; }
+        public bool VideoDisabled { get; set; }
     
         public virtual Project Project { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

@@ -9,7 +9,6 @@ using System.Windows.Forms;
 using System.Drawing.Imaging;
 using Emgu.CV;
 using System.Configuration;
-using Emgu.CV.PpfMatch3d;
 using System.Threading;
 
 namespace ONVIFPTZControl
@@ -108,11 +107,11 @@ namespace ONVIFPTZControl
            
         }
 
-        public void GoToImagePreset()
+        public void GoToImagePreset(int item)
         {
             try
             {
-                string PresetTokenNxet = _all[19].token;
+                string PresetTokenNxet = _all[item-1].token;
                 _ptzClient.GotoPreset(_profile.token, PresetTokenNxet, _velocity);
             }
             catch (Exception)
@@ -134,77 +133,71 @@ namespace ONVIFPTZControl
         }
 
 
-        public bool SaveImage(TextBox textBox1)
+        public bool SaveImage(string from, string to)
         {
             string tosend = "";
-            bool tryTosend = true;
-            int count = 0;
-            while (tryTosend)
+            
+            try
             {
-                try
-                {
-                    var rtsp = $"rtsp://{_camera.Usermane}:{_camera.Password}@{_camera.Url}";
-                    if (_camera.RtspPort != null && _camera.RtspPort != 554)
-                    {
-                        rtsp = $"rtsp://{_camera.Usermane}:{_camera.Password}@{_camera.Url}:{_camera.RtspPort}";
-                    }
-                    using (VideoCapture cameraCapture = new VideoCapture(rtsp))
-                    {
-                        tosend += "rtsp " + rtsp;
-
-                        var imagepath = ConfigurationManager.AppSettings["imagesPath"];
-
-                        tosend += "\n imagepath:" + imagepath;
-
-                        string fileName = $@"{DateTime.Now.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss")}.jpg";
-
-                        tosend += "\n fileName:" + fileName;
-
-                        string appPath = imagepath + $@"\{_camera.Project.Organization.Name}\{_camera.Project.Name}\{_camera.Name}\";
-
-                        tosend += "\n appPath:" + appPath;
-
-                        if (!Directory.Exists(appPath))
-                        {
-                            Directory.CreateDirectory(appPath);
-                        }
-
-                        tosend += "\n CreateDirectory";
-
-                        Mat frame = cameraCapture.QueryFrame();
-                        var bit = frame.ToBitmap();
-
-                        tosend += "\n bit:" + bit.Size;
-
-                        FullPath = appPath + fileName;
-
-                        tosend += "\n FullPath:" + FullPath;
-
-                        bit.Save(FullPath, ImageFormat.Jpeg);
-                        FileInfo fInfo = new FileInfo(FullPath);
-                        long sLen = 0;
-                        if (fInfo.Length >= (1 << 10))
-                            sLen = fInfo.Length >> 10;
-                        if (sLen < int.Parse(textBox1.Text))
-                        {
-                            return false;
-                        }
-                    }
-                    return true;
-                }
-                catch (Exception)
-                {
-                    if (count>=3)
-                    {
-                        throw new Exception(tosend);
-                    }
-                    count++;
-                    Thread.Sleep(5000);
-                }
+                return rtspImage(from, to, ref tosend);
+            }
+            catch (Exception)
+            {
+                Thread.Sleep(5000);
+                return rtspImage(from, to, ref tosend);
             }
            
-            return true;
+        }
 
+        private bool rtspImage(string from, string to, ref string tosend)
+        {
+            var rtsp = $"rtsp://{_camera.Usermane}:{_camera.Password}@{_camera.Url}";
+            if (!string.IsNullOrEmpty(_camera.RtspPort))
+            {
+                rtsp = $"rtsp://{_camera.Usermane}:{_camera.Password}@{_camera.Url}:{_camera.RtspPort}";
+            }
+            using (VideoCapture cameraCapture = new VideoCapture(rtsp))
+            {
+                tosend += "rtsp " + rtsp;
+
+                var imagepath = ConfigurationManager.AppSettings["imagesPath"];
+
+                string fileName = $@"{DateTime.Now.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss")}.jpg";
+
+                tosend += "\n fileName:" + fileName;
+
+                string appPath = imagepath + $@"\{_camera.Project.Organization.Id}\{_camera.Project.Id}\{_camera.Id}\";
+
+                tosend += "\n appPath:" + appPath;
+
+                if (!Directory.Exists(appPath))
+                {
+                    Directory.CreateDirectory(appPath);
+                }
+
+                tosend += "\n CreateDirectory";
+
+                using (Mat frame = cameraCapture.QueryFrame())
+                {
+                    using (var bit = frame.ToBitmap())
+                    {
+                        FullPath = appPath + fileName;
+                        bit.Save(FullPath, ImageFormat.Jpeg);
+                    }
+                }
+
+                FullPath = appPath + fileName;
+               
+                FileInfo fInfo = new FileInfo(FullPath);
+                long sLen = 0;
+                if (fInfo.Length >= (1 << 10))
+                    sLen = fInfo.Length >> 10;
+                if (sLen < int.Parse(from) && sLen > int.Parse(to))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         public void Dispose()

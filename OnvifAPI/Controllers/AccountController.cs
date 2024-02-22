@@ -52,7 +52,7 @@ namespace OnvifAPI.Controllers
 
                 var accessToken = GenerateAccessToken(user.Name, user.Id.ToString(), Secretkey, DateTime.Now.AddMinutes(AccessTimeInMinutes));
                 var refreshToken = GenerateAccessToken(user.Name, user.Id.ToString(), RefreshSecretKey, DateTime.Now.AddDays(RefreshTokenInDays));
-                return Ok(new TokenModel { AccessToken = accessToken, RefreshToken = refreshToken });
+                return Ok(new TokenModel { AccessToken = accessToken, RefreshToken = refreshToken ,SystemImagesPath= _config["ImagesPath"] });
             }
             catch (Exception ex)
             {

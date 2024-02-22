@@ -32,17 +32,15 @@ public partial class Camera
 
     public bool IsDisabled { get; set; }
 
-    public int? RtspPort { get; set; }
+    public string RtspPort { get; set; }
 
     public string Name { get; set; }
+
+    public string Presets { get; set; }
+
+    public bool VideoDisabled { get; set; }
 
     public virtual ICollection<CameraFrameTime> CameraFrameTimes { get; set; } = new List<CameraFrameTime>();
 
     public virtual Project Project { get; set; }
-}
-
-public partial class Camera
-{
-    [NotMapped]
-    public byte[] Image { get; set; }
 }

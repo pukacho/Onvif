@@ -1,29 +1,16 @@
-﻿using ONVIFPTZControl.OnvifMedia10;
-using ONVIFPTZControl.OnvifPTZService;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Net;
-using System.ServiceModel.Channels;
-using System.ServiceModel;
-using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Forms;
 using System.Threading;
-using System.Net.Mail;
-using System.Net.Mime;
-using System.Data.Entity;
-using System.Reflection;
 using NLog;
-using NLog.Targets;
 
 namespace ONVIFPTZControl
 {
-  
+
     public partial class Form1 : Form
     {
         System.Timers.Timer timerImage;
@@ -32,14 +19,11 @@ namespace ONVIFPTZControl
 
         private masterEntities1 masterEntitiesDB;
         
-        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         public double TimerInterval { get; set; } = 300000;
-
         public double TimerIntervalToSend { get; set; } = 1800000;
 
-        
         private SynchronizationContext syncContext;
-        ////string url = "http://cam:user12345@http://62.0.142.29:1091";
         public Form1()
         {
             InitializeComponent();
@@ -47,11 +31,10 @@ namespace ONVIFPTZControl
             masterEntitiesDB = new masterEntities1();
             timerImage = new System.Timers.Timer(TimerInterval);
             timerImage.Elapsed += Timer_Elapsed;
-            Timer_Elapsed(null, null);
+            TimerToSend_Elapsed(null, null);
             timerToSend = new System.Timers.Timer(TimerIntervalToSend);
             timerToSend.Elapsed += TimerToSend_Elapsed;
             timerToSend.Start();
-            //TimerToSend_Elapsed(null, null);
             var config = new NLog.Config.LoggingConfiguration();
             var logfile = new NLog.Targets.FileTarget("logfile") { FileName = "file.txt" };
             var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
@@ -61,7 +44,6 @@ namespace ONVIFPTZControl
             
             
         }
-
         private void TimerToSend_Elapsed(object sender, ElapsedEventArgs e)
         {
             try
@@ -74,13 +56,13 @@ namespace ONVIFPTZControl
 
                 }, null);
 
-                Parallel.ForEach(allPtz, ptz =>
+                foreach (var ptz in allPtz)
                 {
                     try
                     {
-                        using (Sender send = new Sender(ptz))
+                        using (Sender send = new Sender(ptz, Logger))
                         {
-                            send.StrtSending();
+                            send.StrtSending(textBox2.Text);
                             if (ptz.NextSendDate == null)
                                 ptz.NextSendDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 23, 59, 00);
 
@@ -106,9 +88,7 @@ namespace ONVIFPTZControl
                         Logger.Error("Parallel fiemes :" + ex);
 
                     }
-
-                   
-                });
+                }
                 masterEntitiesDB.SaveChanges();
 
             }
@@ -121,17 +101,10 @@ namespace ONVIFPTZControl
                 timerToSend.Start();
             }
         }
-
-        private static DateTime CreateDateToSend(Camera ptz)
-        {
-            return new DateTime(ptz.NextSendDate.Value.Year, ptz.NextSendDate.Value.Month, ptz.NextSendDate.Value.Day, 23, 59, 00);
-        }
-
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
             try
             {
-
                 timerImage.Stop();
                 List<Camera> allPtz = new List<Camera>();
                 List<CameraFrameTime> fiemes = new List<CameraFrameTime>();
@@ -139,31 +112,37 @@ namespace ONVIFPTZControl
                 {
                     allPtz = masterEntitiesDB.Cameras.Include("Project.Organization").Where(x => x.NextFrameDate == null || x.NextFrameDate <= DateTime.Now).ToList();
                     fiemes= masterEntitiesDB.CameraFrameTimes.ToList();
-                   
                 }, null);
 
-                Parallel.ForEach(allPtz, ptz =>
+                foreach (var ptz in allPtz)
                 {
-                    
-                        Task.Run(() => 
+                    Task.Run(() =>
+                    {
+                        try
                         {
-                            try
-                            {
-                                var frames = fiemes.Where(n => n.CameraId == ptz.Id).ToList();
-                                if (!frames.Any()) return;
+                            var frames = fiemes.Where(n => n.CameraId == ptz.Id).ToList();
+                            if (!frames.Any()) return;
 
-                                using (PtzCamera camera = new PtzCamera())
+                            using (PtzCamera camera = new PtzCamera())
+                            {
+                                if (camera.Initialise(ptz))
                                 {
-                                    if (camera.Initialise(ptz))
+                                    camera.SetCurentPreset();
+                                    var presets = ptz.Presets
+                                                   .Split(';')
+                                                   .Where(x => int.TryParse(x, out _))
+                                                   .Select(int.Parse)
+                                                   .ToList();
+
+                                    foreach (var item in presets)
                                     {
-                                        camera.SetCurentPreset();
-                                        camera.GoToImagePreset();
+                                        camera.GoToImagePreset(item);
                                         Thread.Sleep(5000);
                                         try
                                         {
-                                            if (!camera.SaveImage(textBox1))
+                                            if (!camera.SaveImage(textBox1.Text, textBox3.Text))
                                             {
-                                                using (Sender send = new Sender(ptz))
+                                                using (Sender send = new Sender(ptz, Logger))
                                                 {
                                                     send.SendAlert(textBox2.Text, camera.FullPath);
                                                 }
@@ -171,28 +150,27 @@ namespace ONVIFPTZControl
                                         }
                                         catch (Exception ex)
                                         {
-
                                             Logger.Error("Save Image no image :" + ex);
-                                            using (Sender send = new Sender(ptz))
+                                            using (Sender send = new Sender(ptz, Logger))
                                             {
                                                 send.SendAlertNoSave(textBox2.Text, ex.ToString());
-                                                send.SendAlertNoSave("anatolipak@gmail.com", ex.ToString());
                                             }
                                         }
-
-                                        camera.GoToSavedPreset();
-                                        ptz.NextFrameDate = SetNextFrameDate(ptz.NextFrameDate, frames);
-                                        masterEntitiesDB.SaveChanges();
                                     }
+
+                                    camera.GoToSavedPreset();
+                                    ptz.NextFrameDate = SetNextFrameDate(ptz.NextFrameDate, frames);
+                                    masterEntitiesDB.SaveChanges();
                                 }
                             }
-                            catch (Exception ex)
-                            {
-                                Logger.Error("Parallel fiemes :" + ex);
-                            }
-                        });
-                       
-                });
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Error("Parallel fiemes :" + ex);
+                        }
+                    });
+                }
+                
             }
             catch (Exception ex)
             {
@@ -204,7 +182,6 @@ namespace ONVIFPTZControl
             }
             
         }
-
         private DateTime? SetNextFrameDate(DateTime? nextFrameDate, List<CameraFrameTime> frames)
         {
             var date=DateTime.Now;
@@ -233,7 +210,6 @@ namespace ONVIFPTZControl
 
             return nextFrameDate;
         }
-
         private static DateTime? GetFierstNextTimefromNow( List<CameraFrameTime> frames, DateTime date)
         {
             foreach (var item in frames)
@@ -247,7 +223,6 @@ namespace ONVIFPTZControl
 
             return setDate(date.AddDays(1), frames.First().FrameTime.Split(':').Select(n => int.Parse(n)).ToArray());
         }
-
         private static DateTime setDate(DateTime date, int[] time)
         {
             if (time[0]==0)
@@ -256,9 +231,10 @@ namespace ONVIFPTZControl
             }
             return new DateTime(date.Year, date.Month, date.Day, time[0], time[1], 00);
         }
+        private static DateTime CreateDateToSend(Camera ptz)
+        {
+            return new DateTime(ptz.NextSendDate.Value.Year, ptz.NextSendDate.Value.Month, ptz.NextSendDate.Value.Day, 23, 59, 00);
+        }
 
-      
-
-       
     }
 }

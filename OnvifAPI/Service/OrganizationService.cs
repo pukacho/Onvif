@@ -3,7 +3,7 @@ using OnvifAPI.Interfaces;
 
 namespace OnvifAPI.Service
 {
-    public class OrganizationService : IOrganizationService
+    public class OrganizationService : BaseService, IOrganizationService
     {
         private readonly IRepository<Project> projectRepository;
         private readonly IRepository<Organization> _organizationRepository;
@@ -22,29 +22,55 @@ namespace OnvifAPI.Service
 
         public Organization Add(Organization newOrganization)
         {
-            return _organizationRepository.Add(newOrganization);
+            var org = _organizationRepository.Add(newOrganization);
+            if (newOrganization.Image != null && newOrganization.Image.Any())
+            {
+                SaveOrganizationImage(newOrganization.Image, org.Id);
+            }
+            return org;
         }
 
         public Organization Update(Organization updateOrganization)
         {
-            return _organizationRepository.Update(updateOrganization);
+            var org = _organizationRepository.Update(updateOrganization);
+            if (updateOrganization.Image!= null && updateOrganization.Image.Any())
+            {
+                SaveOrganizationImage(updateOrganization.Image, org.Id);
+            }
+            return org;
         }
 
         public bool Delete(int organizationId)
         {
-            var org= _organizationRepository.GetById(organizationId);
-            if (org.Projects!= null && org.Projects.Any())
+            try
             {
-                foreach (var item in org.Projects)
+                var org = _organizationRepository.GetById(organizationId);
+                if (org.Projects != null && org.Projects.Any())
                 {
-                    projectRepository.Delete(item.Id);
+                    foreach (var item in org.Projects)
+                    {
+                        projectRepository.Delete(item.Id);
+                    }
                 }
+                if (_organizationRepository.Delete(organizationId))
+                {
+                    DeleteOrganizationFolders(organizationId);
+                }
+
+                return true;
             }
-            return _organizationRepository.Delete(organizationId);
+            catch (Exception)
+            {
+
+               return false;
+            }
+            
         }
 
         public Organization GetById(int organizationId)
         {
+            var org = _organizationRepository.GetById(organizationId);
+            org.Image = GetOrganizationImage(org.Id);
             return _organizationRepository.GetById(organizationId);
         }
     }

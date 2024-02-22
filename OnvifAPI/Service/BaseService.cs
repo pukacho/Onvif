@@ -1,4 +1,5 @@
 ﻿using EFOnvifAPI.Models;
+using System.IO;
 
 namespace OnvifAPI.Service
 {
@@ -29,7 +30,7 @@ namespace OnvifAPI.Service
         {
             try
             {
-                string file = string.Format(@"{0}{1}", _config["ImagesPath"],$@"\{camera.Project.Organization.Name}\{camera.Project.Name}\{camera.Name}\");
+                string file = string.Format(@"{0}{1}", _config["ImagesPath"],$@"\{camera.Project.Organization.Id}\{camera.Project.Id}\{camera.Id}\");
                 if (Directory.Exists(file))
                 {
                     DirectoryInfo directoryInfo = new DirectoryInfo(file);
@@ -44,6 +45,54 @@ namespace OnvifAPI.Service
                 return new byte[0];
             }
 
+        }
+
+        internal bool SaveOrganizationImage(byte[] image, int organizationId)
+        {
+            try
+            {
+                string file = string.Format(@"{0}{1}", _config["ImagesPath"], $@"\{organizationId}\orgImage.png");
+                File.WriteAllBytes(file, image);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        internal bool DeleteOrganizationFolders( int organizationId)
+        {
+            try
+            {
+                string file = string.Format(@"{0}{1}", _config["ImagesPath"], $@"\{organizationId}");
+                File.Delete(file);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        internal byte[] GetOrganizationImage(int organizationId)
+        {
+            try
+            {
+                string file = string.Format(@"{0}{1}", _config["ImagesPath"], $@"\{organizationId}\");
+                if (Directory.Exists(file))
+                {
+                    DirectoryInfo directoryInfo = new DirectoryInfo(file);
+                    var fileinfo = directoryInfo.GetFiles("orgImage.png").FirstOrDefault();
+                    return File.ReadAllBytes(fileinfo.FullName);
+                }
+                
+            }
+            catch (Exception)
+            {
+                return new byte[0];
+            }
+            return new byte[0];
         }
     }
 }
