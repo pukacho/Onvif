@@ -31,7 +31,7 @@ namespace ONVIFPTZControl
             masterEntitiesDB = new masterEntities1();
             timerImage = new System.Timers.Timer(TimerInterval);
             timerImage.Elapsed += Timer_Elapsed;
-            TimerToSend_Elapsed(null, null);
+            Timer_Elapsed(null, null);
             timerToSend = new System.Timers.Timer(TimerIntervalToSend);
             timerToSend.Elapsed += TimerToSend_Elapsed;
             timerToSend.Start();
