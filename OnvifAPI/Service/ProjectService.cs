@@ -1,6 +1,7 @@
 ﻿using EFOnvifAPI.Models;
 using Microsoft.EntityFrameworkCore;
 using OnvifAPI.Interfaces;
+using System.Diagnostics.Eventing.Reader;
 
 namespace OnvifAPI.Service
 {
@@ -17,6 +18,8 @@ namespace OnvifAPI.Service
             this.masterContext = masterContext;
         }
 
+       
+
         public IEnumerable<Project> GetAll()
         {
 
@@ -32,13 +35,27 @@ namespace OnvifAPI.Service
 
         public Project Add(Project newProject)
         {
+            if (newProject.Image != null && newProject.Image.Any())
+            {
+                SaveProjectImage(newProject.Image, newProject.OrganizationId, newProject.Id);
+            }
             return _projectRepository.Add(newProject);
         }
 
         public Project Update(Project updateProject)
         {
+            if (updateProject.Image != null && updateProject.Image.Any())
+            {
+                SaveProjectImage(updateProject.Image, updateProject.OrganizationId, updateProject.Id);
+            }
+            else
+            {
+                DeleteProjectImage(updateProject.OrganizationId, updateProject.Id);
+            }    
             return _projectRepository.Update(updateProject);
         }
+
+      
 
         public bool Delete(int projectId)
         {
@@ -56,7 +73,9 @@ namespace OnvifAPI.Service
 
         public Project GetById(int projectId)
         {
-            return _projectRepository.GetById(projectId);
+            var proj = _projectRepository.GetById(projectId);
+            proj.Image = GetProjectImage(proj.OrganizationId, proj.Id);
+            return proj;
         }
 
         public IEnumerable<Project> GetByOrgId(int orgIId)
@@ -67,7 +86,10 @@ namespace OnvifAPI.Service
             {
                 if (project.Cameras.Count > 0)
                     SetImages(project.Cameras);
+
+                project.Image = GetProjectImage(project.OrganizationId, project.Id);
             }
+
             return proj;
         }
     }

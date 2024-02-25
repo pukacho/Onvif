@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace EFOnvifAPI.Models
 {
-    public partial class Organization
+    public partial class Project
     {
         [NotMapped]
         public byte[] Image { get; set; }

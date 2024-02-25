@@ -1,5 +1,6 @@
 ﻿using EFOnvifAPI.Models;
 using System.IO;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace OnvifAPI.Service
 {
@@ -47,11 +48,23 @@ namespace OnvifAPI.Service
 
         }
 
-        internal bool SaveOrganizationImage(byte[] image, int organizationId)
+        internal void DeleteProjectImage(int organizationId, int id)
         {
             try
             {
-                string file = string.Format(@"{0}{1}", _config["ImagesPath"], $@"\{organizationId}\orgImage.png");
+                string file = string.Format(@"{0}{1}", _config["ImagesPath"], $@"\{organizationId}\{id}\orgImage.png");
+                File.Delete(file);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        internal bool SaveProjectImage(byte[] image, int organizationId,int projectId)
+        {
+            try
+            {
+                string file = string.Format(@"{0}{1}", _config["ImagesPath"], $@"\{organizationId}\{projectId}\orgImage.png");
                 File.WriteAllBytes(file, image);
             }
             catch (Exception)
@@ -75,11 +88,11 @@ namespace OnvifAPI.Service
             return true;
         }
 
-        internal byte[] GetOrganizationImage(int organizationId)
+        internal byte[] GetProjectImage(int organizationId, int projectId)
         {
             try
             {
-                string file = string.Format(@"{0}{1}", _config["ImagesPath"], $@"\{organizationId}\");
+                string file = string.Format(@"{0}{1}", _config["ImagesPath"], $@"\{organizationId}\{projectId}\");
                 if (Directory.Exists(file))
                 {
                     DirectoryInfo directoryInfo = new DirectoryInfo(file);

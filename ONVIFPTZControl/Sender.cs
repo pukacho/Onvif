@@ -48,7 +48,7 @@ namespace ONVIFPTZControl
             Logger = logger;
             _dateTime = $"{DateTime.Now.ToString("dd-MM-yyy-hh-mm")}";
             _appPath = ConfigurationManager.AppSettings["imagesPath"] + $@"\{Camera.Project.Organization.Id}\{Camera.Project.Id}\{Camera.Id}\";
-            _orgImage = string.Format(@"{0}{1}", ConfigurationManager.AppSettings["imagesPath"], $@"\{Camera.Project.Organization.Id}\orgImage.png");
+            _orgImage = string.Format(@"{0}{1}", ConfigurationManager.AppSettings["imagesPath"], $@"\{Camera.Project.Organization.Id}\{Camera.Project.Id}\orgImage.png");
             _zipPath = _appPath + $@"{Camera.Project.Organization.Name}-{Camera.Project.Name}-{Camera.Name}-{_dateTime}.zip";
             _nameOrgProjectCamera = $"Organization: {Camera.Project.Organization.Name} Project: {Camera.Project.Name} Camera: {Camera.Name}";
         }

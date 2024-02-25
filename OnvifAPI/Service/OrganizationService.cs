@@ -23,20 +23,14 @@ namespace OnvifAPI.Service
         public Organization Add(Organization newOrganization)
         {
             var org = _organizationRepository.Add(newOrganization);
-            if (newOrganization.Image != null && newOrganization.Image.Any())
-            {
-                SaveOrganizationImage(newOrganization.Image, org.Id);
-            }
+           
             return org;
         }
 
         public Organization Update(Organization updateOrganization)
         {
             var org = _organizationRepository.Update(updateOrganization);
-            if (updateOrganization.Image!= null && updateOrganization.Image.Any())
-            {
-                SaveOrganizationImage(updateOrganization.Image, org.Id);
-            }
+           
             return org;
         }
 
@@ -70,7 +64,7 @@ namespace OnvifAPI.Service
         public Organization GetById(int organizationId)
         {
             var org = _organizationRepository.GetById(organizationId);
-            org.Image = GetOrganizationImage(org.Id);
+            
             return _organizationRepository.GetById(organizationId);
         }
     }
