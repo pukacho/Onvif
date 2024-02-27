@@ -1,6 +1,7 @@
 ﻿using EFOnvifAPI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using OnvifAPI.Interfaces;
 using OnvifAPI.Service;
 
@@ -39,6 +40,10 @@ namespace OnvifAPI.Controllers
         {
             try
             {
+                if (!string.IsNullOrEmpty(newProject.FileAsByteArray))
+                {
+                    newProject.Image = Convert.FromBase64String(newProject.FileAsByteArray);
+                }
                 return Ok(_projectService.Add(newProject));
             }
             catch (Exception ex)
@@ -48,13 +53,15 @@ namespace OnvifAPI.Controllers
             }
             
         }
-
+      
 
         [HttpPut("")]
         public ActionResult Update(Project updateProject)
         {
             try
             {
+                updateProject.Image = Convert.FromBase64String(updateProject.FileAsByteArray);
+                
                 return Ok(_projectService.Update(updateProject));
             }
             catch (Exception ex)

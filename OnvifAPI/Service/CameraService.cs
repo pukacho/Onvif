@@ -67,18 +67,27 @@ namespace OnvifAPI.Service
             {
                 case "day":
                     newCamera.FrameTimeSec = 3;
+                    newCamera.NextSendDate = CreateDateToSend().AddDays(1);
                     break;
                 case "week":
                     newCamera.FrameTimeSec = 2;
+                    newCamera.NextSendDate = CreateDateToSend().AddDays(7);
                     break;
                 case "month":
                     newCamera.FrameTimeSec = 1;
+                    newCamera.NextSendDate = CreateDateToSend().AddMonths(1);
                     break;
                 default:
                     break;
             }
+            
+
             return newCamera;
         }
 
+        private static DateTime CreateDateToSend()
+        {
+            return new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 23, 59, 00); ;
+        }
     }
 }

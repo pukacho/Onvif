@@ -28,6 +28,8 @@ namespace OnvifAPI.Service
             {
                 if(project.Cameras.Count>0)
                     SetImages(project.Cameras);
+
+                project.Image = GetProjectImage(project.OrganizationId, project.Id);
             }
             return proj;
         }
